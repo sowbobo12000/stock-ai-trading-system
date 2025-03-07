@@ -1,0 +1,47 @@
+# Python 관련
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+env/
+
+# Jupyter Notebook 체크포인트
+.ipynb_checkpoints/
+
+# Log 파일
+logs/
+*.log
+
+# 데이터 파일
+data/raw/
+data/processed/
+data/vector_storage/
+data/time_series/
+
+# 모델 체크포인트
+models/llm/checkpoints/
+models/time_series/checkpoints/
+models/reinforcement/checkpoints/
+models/tree_based/checkpoints/
+
+# 환경 설정
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+
+# Docker 관련
+*.docker
+docker-compose.override.yml
+
+# AWS 관련
+.aws/
+.credentials
+config/
+
+# IDE 및 기타
+.vscode/
+.idea/
+.DS_Store
+
