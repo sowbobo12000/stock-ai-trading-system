@@ -1,10 +1,12 @@
-import os
 import logging
-import requests
-from datetime import datetime, timedelta
+import os
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+
 import pandas as pd
 import pandas_market_calendars as mcal
 import pytz
+import requests
 
 API_KEY = os.getenv('ALPHAVANTAGE_API_KEY')
 
@@ -61,8 +63,8 @@ else:
 end_date = end_date_dt.strftime('%Y-%m-%d')
 print(f"Using end_date: {end_date}")
 
-# Iterate over symbols and valid trading days to fetch and save option data
-for symbol in ['QQQ', 'SPY']:
+
+def process_symbol(symbol):
     directory = f"../data/raw/options/{symbol}"
     os.makedirs(directory, exist_ok=True)
 
@@ -88,3 +90,9 @@ for symbol in ['QQQ', 'SPY']:
         except Exception as e:
             logging.error(f"FAILED: {symbol} on {date_str}: {e}")
             print(f"Error fetching data for {symbol} on {date_str}: {e}")
+
+
+# Use ThreadPoolExecutor to process symbols in parallel
+symbols = ['QQQ', 'SPY']
+with ThreadPoolExecutor() as executor:
+    executor.map(process_symbol, symbols)
