@@ -1,0 +1,38 @@
+//@version=5
+indicator("AI 시그널 조합 - QQQ", overlay=true)
+
+// 입력
+rsi_period = input.int(14, "RSI Period")
+bb_length1 = input.int(20, "BB20 Length")
+bb_length2 = input.int(44, "BB44 Length")
+macd_fast = input.int(12, "MACD Fast")
+macd_slow = input.int(26, "MACD Slow")
+macd_signal = input.int(9, "MACD Signal")
+
+// 지표 계산
+rsi = ta.rsi(close, rsi_period)
+[macdLine, signalLine, histLine] = ta.macd(close, macd_fast, macd_slow, macd_signal)
+
+// 볼린저밴드 계산 수동 처리
+basis1 = ta.sma(close, bb_length1)
+dev1 = 2 * ta.stdev(close, bb_length1)
+bb_lower1 = basis1 - dev1
+
+basis2 = ta.sma(close, bb_length2)
+dev2 = 2 * ta.stdev(close, bb_length2)
+bb_lower2 = basis2 - dev2
+
+// VWAP
+vwap = ta.vwap
+
+// Disparity Index
+sma20 = ta.sma(close, 20)
+disparity = 100 * (close - sma20) / sma20
+
+// 시그널 조건
+long_signal = rsi < 30 and close < bb_lower1 and close < bb_lower2 and histLine > 0 and disparity < -5
+short_signal = rsi > 70 and close > (basis1 + dev1) and histLine < 0 and disparity > 5
+
+// 시각화
+plotshape(long_signal, title="Long Signal", location=location.belowbar, color=color.green, style=shape.labelup, text="Long 🚀")
+plotshape(short_signal, title="Short Signal", location=location.abovebar, color=color.red, style=shape.labeldown, text="Short ⛔")

@@ -1,0 +1,60 @@
+//@version=5
+strategy("개선형 QQQ 반등 전략 v4 - 롱숏 대응 + 트레일링 익절", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
+
+// === 주요 지표 ===
+rsi = ta.rsi(close, 14)
+sma20 = ta.sma(close, 20)
+disparity = 100 * (close - sma20) / sma20
+[_, _, macdHist] = ta.macd(close, 12, 26, 9)
+bb_upper = sma20 + 2 * ta.stdev(close, 20)
+bb_lower = sma20 - 2 * ta.stdev(close, 20)
+
+
+// === 롱 진입 조건 ===
+long_red_candle = close < bb_lower and close < open and (open - close) / close > 0.01
+rsi_rebound = ta.crossover(rsi, 30)
+disp_rebound = disparity[1] < -4 and disparity > disparity[1]
+macd_cross_up = macdHist > 0 and macdHist[1] < 0
+
+var int long_signal_count = 0
+long_signal_count := 0
+if long_red_candle
+    long_signal_count += 1
+if rsi_rebound
+    long_signal_count += 1
+if disp_rebound
+    long_signal_count += 1
+if macd_cross_up
+    long_signal_count += 1
+
+long_entry_confirm = close > open and ta.barssince(long_signal_count >= 2) <= 2
+
+if (long_entry_confirm)
+    strategy.entry("정밀 롱", strategy.long)
+
+strategy.exit("TP Long", from_entry="정밀 롱", trail_points=3, trail_offset=2)
+
+
+// === 숏 진입 조건 (대칭 구조) ===
+short_green_candle = close > bb_upper and close > open and (close - open) / open > 0.01
+rsi_drop = ta.crossunder(rsi, 70)
+disp_drop = disparity[1] > 4 and disparity < disparity[1]
+macd_cross_down = macdHist < 0 and macdHist[1] > 0
+
+var int short_signal_count = 0
+short_signal_count := 0
+if short_green_candle
+    short_signal_count += 1
+if rsi_drop
+    short_signal_count += 1
+if disp_drop
+    short_signal_count += 1
+if macd_cross_down
+    short_signal_count += 1
+
+short_entry_confirm = close < open and ta.barssince(short_signal_count >= 2) <= 2
+
+if (short_entry_confirm)
+    strategy.entry("정밀 숏", strategy.short)
+
+strategy.exit("TP Short", from_entry="정밀 숏", trail_points=3, trail_offset=2)

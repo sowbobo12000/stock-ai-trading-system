@@ -1,0 +1,51 @@
+//@version=5
+strategy("실전형 자주 발생 반등 전략", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
+
+// === 주요 지표 계산 ===
+rsi = ta.rsi(close, 14)
+sma20 = ta.sma(close, 20)
+disparity = 100 * (close - sma20) / sma20
+[_, _, macdHist] = ta.macd(close, 12, 26, 9)
+
+bb_upper = sma20 + 2 * ta.stdev(close, 20)
+bb_lower = sma20 - 2 * ta.stdev(close, 20)
+
+// === 조건 1: 볼밴 하단 돌파 & 장대 음봉 ===
+long_red_candle = close < bb_lower and close < open and (open - close) / close > 0.01
+
+// === 조건 2: RSI가 30 밑으로 내려갔다가 회복 (과매도 진입 후 반등)
+rsi_rebound = ta.crossover(rsi, 30)
+
+// === 조건 3: DI < -4 → 복구 움직임
+disp_rebound = disparity[1] < -4 and disparity > disparity[1]
+
+// === 조건 4: MACD 히스토그램 양전환
+macd_cross = macdHist > 0 and macdHist[1] < 0
+
+// === 조건 5: 캔들 패턴 - 해머형
+body = math.abs(close - open)
+lower_shadow = close < open ? open - low : close - low
+hammer = lower_shadow > 1.5 * body and body < (high - low) * 0.5
+
+// === 최종 진입 조건 (여러 시그널 중 2개 이상 만족 시 진입)
+signal_count = 0
+signal_count := long_red_candle ? signal_count + 1 : signal_count
+signal_count := rsi_rebound ? signal_count + 1 : signal_count
+signal_count := disp_rebound ? signal_count + 1 : signal_count
+signal_count := macd_cross ? signal_count + 1 : signal_count
+signal_count := hammer ? signal_count + 1 : signal_count
+
+long_entry = signal_count >= 2
+exit_cond = ta.crossover(rsi, 55)
+
+if (long_entry)
+    strategy.entry("실전 롱", strategy.long)
+
+if (exit_cond)
+    strategy.close("실전 롱")
+
+
+
+
+
+
