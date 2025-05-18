@@ -17,6 +17,8 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s'
 )
 
+# Get the repository root directory
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_option_data(symbol, date_str):
     url = (
@@ -38,10 +40,25 @@ def get_option_data(symbol, date_str):
         pass
     return content
 
-
 # Define the start date for data collection
-start_date = '2008-01-01'
-start_date = '2025-02-01'
+# Calculate start date as 7 business days before today
+us_eastern = pytz.timezone('America/New_York')
+now_et = datetime.now(us_eastern)
+market_open_time = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
+today_str = now_et.strftime('%Y-%m-%d')
+
+# Get NYSE calendar and valid trading days
+nyse = mcal.get_calendar('NYSE')
+valid_days = nyse.valid_days(start_date=(now_et - pd.Timedelta(days=14)).strftime('%Y-%m-%d'), end_date=today_str)
+
+# Get the date 7 business days before today
+if len(valid_days) >= 7:
+    start_date_dt = valid_days[-7]
+else:
+    start_date_dt = valid_days[0]
+
+start_date = start_date_dt.strftime('%Y-%m-%d')
+print(f"Using start_date: {start_date}")
 
 # Determine current US Eastern Time and adjust for market open hours
 us_eastern = pytz.timezone('America/New_York')
@@ -63,9 +80,9 @@ else:
 end_date = end_date_dt.strftime('%Y-%m-%d')
 print(f"Using end_date: {end_date}")
 
-
 def process_symbol(symbol):
-    directory = f"../data/raw/options/{symbol}"
+    # Use absolute path from repository root
+    directory = os.path.join(REPO_ROOT, "data", "raw", "options", symbol)
     os.makedirs(directory, exist_ok=True)
 
     # Get valid trading days up to the determined end_date
@@ -73,7 +90,7 @@ def process_symbol(symbol):
 
     for trading_day in valid_days_for_symbol:
         date_str = trading_day.strftime("%Y-%m-%d")
-        file_path = f"{directory}/{date_str}.csv"
+        file_path = os.path.join(directory, f"{date_str}.csv")
 
         # If the file already exists, skip downloading it
         if os.path.exists(file_path):
@@ -91,8 +108,7 @@ def process_symbol(symbol):
             logging.error(f"FAILED: {symbol} on {date_str}: {e}")
             print(f"Error fetching data for {symbol} on {date_str}: {e}")
 
-
 # Use ThreadPoolExecutor to process symbols in parallel
-symbols = ['QQQ', 'SPY']
+symbols = ['QQQ', 'SPY', 'NFLX']
 with ThreadPoolExecutor() as executor:
     executor.map(process_symbol, symbols)
