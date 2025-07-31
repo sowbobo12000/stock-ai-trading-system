@@ -1,2 +1,13 @@
 requests
 pandas-market-calendars
+langgraph>=0.0.15
+langchain>=0.1.0
+langchain-openai>=0.0.2
+pandas>=2.0.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+fastapi>=0.68.0
+uvicorn>=0.15.0
+yfinance>=0.2.36
+newsapi-python>=0.2.7
+xsolla-python-sdk>=1.0.0

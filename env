@@ -1,0 +1,24 @@
+# OpenAI API Configuration
+OPENAI_API_KEY=           # Required for GPT-4o model
+
+# News API Configuration
+NEWS_API_KEY=           # Required for news analysis
+
+# Alphavantage API Configuration
+ALPHAVANTAGE_API_KEY=     # Required for option data crawling
+
+# API Configuration
+API_KEY=                  # General API key for the system
+
+# Server Configuration
+INNER_MCP_PORT=8001       # Port for inner MCP server
+INNER_MCP_HOST=localhost  # Host for inner MCP server
+
+# Logging Configuration
+LOG_LEVEL=INFO           # Logging level (INFO, DEBUG, etc.)
+LOG_FILE=download_options.log  # Log file path
+
+# Data Configuration
+DATA_DIR=data            # Base data directory
+RAW_DATA_DIR=data/raw    # Raw data directory
+PROCESSED_DATA_DIR=data/processed  # Processed data directory
