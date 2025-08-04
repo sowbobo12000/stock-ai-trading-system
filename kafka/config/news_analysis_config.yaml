@@ -1,0 +1,109 @@
+# News Analysis Configuration
+# This file controls LLM model settings and prompts for news analysis
+
+llm:
+  # Model configuration
+  model: "gpt-4o"  # Options: gpt-4o, gpt-4, gpt-3.5-turbo, etc.
+  max_tokens: 500
+  temperature: 0.3
+  
+  # Fallback to mock analysis if API fails
+  use_mock_fallback: true
+
+# Analysis prompts - customize these for different analysis styles
+prompts:
+  # System prompt that defines the AI's role
+  system_prompt: |
+    You are a world-class financial analyst expert at assessing news impact on stock prices. 
+    You have deep knowledge of market dynamics, sector trends, and how news events translate to stock price movements.
+    Provide precise, actionable analysis based on the news content and market context.
+
+  # Main analysis prompt template
+  analysis_prompt: |
+    Analyze the following news article about {symbol} and rate its potential impact on the stock price.
+
+    Headline: {headline}
+    Summary: {summary}
+    Category: {category}
+    Related to company: {related}
+    Source: {source}
+
+    Please provide:
+    1. Impact Score (1-10 scale): 
+       - 1-2: Much Negative Impact
+       - 3-4: Negative Impact
+       - 5-6: Neutral Impact
+       - 7-8: Positive Impact
+       - 9-10: Much Positive Impact
+    2. Reasoning: Brief explanation for the score
+    3. Sentiment: positive, negative, or neutral
+    4. Confidence: How confident you are in this assessment (0.0-1.0)
+
+    Consider these factors in your analysis:
+    - Market context and sector trends
+    - Company's current position and recent performance
+    - Timing and relevance of the news
+    - Potential short-term vs long-term impacts
+    - Market sentiment and investor behavior patterns
+
+    Respond in JSON format:
+    {{
+        "impact_score": <integer 1-10>,
+        "reasoning": "<explanation>",
+        "sentiment": "<positive/negative/neutral>",
+        "confidence": <float 0.0-1.0>
+    }}
+
+# Mock analysis configuration for testing
+mock_analysis:
+  enabled: true
+  
+  # Rules for mock analysis based on keywords
+  rules:
+    earnings:
+      impact_score: 8
+      reasoning: "Earnings-related news typically has high impact on stock price"
+      sentiment: "positive"
+      confidence: 0.85
+      
+    lawsuit:
+      impact_score: 3
+      reasoning: "Legal issues can negatively impact stock price"
+      sentiment: "negative"
+      confidence: 0.80
+      
+    product:
+      impact_score: 6
+      reasoning: "Product announcements have moderate potential impact"
+      sentiment: "positive"
+      confidence: 0.70
+      
+    default:
+      impact_score: 5
+      reasoning: "General news with moderate potential impact"
+      sentiment: "neutral"
+      confidence: 0.60
+
+# OpenSearch configuration
+opensearch:
+  # Index settings
+  index_settings:
+    number_of_shards: 1
+    number_of_replicas: 0
+    
+  # Document mapping for better search performance
+  mapping:
+    properties:
+      symbol:
+        type: "keyword"
+      impact_score:
+        type: "integer"
+      llm_sentiment:
+        type: "keyword"
+      analysis_confidence:
+        type: "float"
+      analyzed_at:
+        type: "date"
+      published_at:
+        type: "date"
+        format: "yyyy-MM-dd HH:mm:ss"

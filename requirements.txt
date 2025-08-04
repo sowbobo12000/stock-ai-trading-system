@@ -1,2 +1,6 @@
 requests
 pandas-market-calendars
+confluent-kafka
+openai
+opensearch-py
+clickhouse-connect

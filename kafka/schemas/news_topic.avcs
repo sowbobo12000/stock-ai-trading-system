@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "NewsData",
+  "namespace": "com.stockai.news",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "symbol", "type": "string"},
+    {"name": "title", "type": "string"},
+    {"name": "description", "type": ["null", "string"], "default": null},
+    {"name": "url", "type": "string"},
+    {"name": "source", "type": "string"},
+    {"name": "published_at", "type": "string"},
+    {"name": "content", "type": ["null", "string"], "default": null},
+    {"name": "sentiment_score", "type": ["null", "double"], "default": null},
+    {"name": "sentiment_label", "type": ["null", "string"], "default": null},
+    {"name": "timestamp", "type": "string"}
+  ]
+}
