@@ -4,3 +4,6 @@ confluent-kafka
 openai
 opensearch-py
 clickhouse-connect
+beautifulsoup4
+lxml
+pyyaml
