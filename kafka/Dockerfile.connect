@@ -1,0 +1,16 @@
+FROM confluentinc/cp-kafka-connect:7.5.0
+
+# 루트 권한으로 패키지 설치
+USER root
+RUN microdnf update -y && \
+    microdnf install -y curl unzip && \
+    microdnf clean all
+
+# ClickHouse Sink Connector (v1.3.1) 다운로드 및 설치
+RUN curl -L -o /tmp/clickhouse-sink.zip \
+    https://github.com/ClickHouse/clickhouse-kafka-connect/releases/download/v1.3.1/clickhouse-kafka-connect-v1.3.1.zip && \
+    unzip /tmp/clickhouse-sink.zip -d /usr/share/java/kafka-connect-clickhouse && \
+    rm /tmp/clickhouse-sink.zip
+
+# 원래의 non-root user로 돌아가기
+USER appuser

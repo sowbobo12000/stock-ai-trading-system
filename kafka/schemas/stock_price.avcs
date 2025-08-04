@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "StockPrice",
+  "namespace": "com.example.stock",
+  "fields": [
+    {"name": "symbol", "type": "string"},
+    {"name": "timestamp", "type": "string"},
+    {"name": "open", "type": "float"},
+    {"name": "high", "type": "float"},
+    {"name": "low", "type": "float"},
+    {"name": "close", "type": "float"},
+    {"name": "volume", "type": "long"}
+  ]
+}

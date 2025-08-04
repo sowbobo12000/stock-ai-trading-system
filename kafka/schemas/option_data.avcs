@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "OptionData",
+  "namespace": "com.example.option",
+  "fields": [
+    {"name": "id", "type": "string"},
+    {"name": "symbol", "type": "string"},
+    {"name": "expiry_date", "type": "string"},
+    {"name": "strike_price", "type": "float"},
+    {"name": "call_put", "type": "string"},
+    {"name": "implied_volatility", "type": "float"},
+    {"name": "volume", "type": "long"},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

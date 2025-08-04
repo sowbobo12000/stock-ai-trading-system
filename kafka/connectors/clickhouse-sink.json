@@ -1,0 +1,15 @@
+{
+    "name": "clickhouse-sink-connector",
+    "config": {
+      "connector.class": "com.github.clickhouse.kafka.connect.ClickHouseSinkConnector",
+      "tasks.max": "1",
+      "topics": "ohlc_topic, option_topic, news_topic",
+      "clickhouse.url": "jdbc:clickhouse://clickhouse-server:8123/default",
+      "clickhouse.user": "default",
+      "clickhouse.password": "",
+      "auto.create.tables": "true",
+      "auto.evolve.schemas": "true",
+      "insert.mode": "insert"
+    }
+  }
+  

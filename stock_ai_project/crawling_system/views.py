@@ -10,16 +10,21 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import Avg
 
-from .models import NewsArticle, OptionData, PriceCandle
-from .serializers import NewsArticleSerializer, OptionDataSerializer, PriceCandleSerializer
+from .models import (
+    NewsArticle, OptionData, PriceCandle, NewsImpact
+)
+from .serializers import (
+    NewsArticleSerializer, OptionDataSerializer, PriceCandleSerializer,
+    NewsImpactSerializer
+)
 from impact_analysis.tasks import analyze_news_impact
 
 
-# Custom pagination with page size control
 class DefaultPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
     max_page_size = 100
+
 
 class NewsArticleViewSet(viewsets.ModelViewSet):
     queryset = NewsArticle.objects.all()
@@ -35,16 +40,11 @@ class NewsArticleViewSet(viewsets.ModelViewSet):
         operation_description="Trigger LLM analysis for this news article",
         responses={200: openapi.Response("Success", schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            properties={
-                'message': openapi.Schema(type=openapi.TYPE_STRING),
-            }
-        ))}
+            properties={'message': openapi.Schema(type=openapi.TYPE_STRING)}
+        ))
     )
     @action(detail=True, methods=["post"])
     def analyze(self, request, pk=None):
-        """
-        Trigger an async Celery task to analyze the news article using an LLM.
-        """
         news = self.get_object()
         analyze_news_impact.delay(news.id)
         return Response({"message": "LLM analysis has been scheduled."}, status=status.HTTP_200_OK)
@@ -55,9 +55,6 @@ class NewsArticleViewSet(viewsets.ModelViewSet):
     )
     @action(detail=True, methods=["post"])
     def reset_analysis(self, request, pk=None):
-        """
-        Delete existing LLM analysis result (NewsImpact) if it exists.
-        """
         news = self.get_object()
         if hasattr(news, "impact"):
             news.impact.delete()
@@ -67,17 +64,12 @@ class NewsArticleViewSet(viewsets.ModelViewSet):
         method='post',
         operation_description="Trigger AWS Lambda to crawl and analyze news for a given stock symbol.",
         manual_parameters=[
-            openapi.Parameter(
-                'symbol', openapi.IN_QUERY, description="Stock symbol (e.g., TSLA)", required=True, type=openapi.TYPE_STRING
-            )
+            openapi.Parameter('symbol', openapi.IN_QUERY, description="Stock symbol (e.g., TSLA)", required=True, type=openapi.TYPE_STRING)
         ],
         responses={200: openapi.Response("Lambda triggered")}
     )
     @action(detail=False, methods=["post"])
     def fetch_now(self, request):
-        """
-        Trigger AWS Lambda to perform crawling and LLM analysis for a given symbol.
-        """
         symbol = request.query_params.get("symbol")
         if not symbol:
             return Response({"error": "Missing symbol"}, status=status.HTTP_400_BAD_REQUEST)
@@ -87,8 +79,8 @@ class NewsArticleViewSet(viewsets.ModelViewSet):
 
         try:
             lambda_client.invoke(
-                FunctionName="stock-crawler",  # adjust to your deployed Lambda name
-                InvocationType="Event",  # async
+                FunctionName="stock-crawler",
+                InvocationType="Event",
                 Payload=json.dumps(payload),
             )
         except Exception as e:
@@ -107,15 +99,8 @@ class OptionDataViewSet(viewsets.ModelViewSet):
     ordering_fields = ['strike_price', 'implied_volatility', 'expiry_date']
     ordering = ['-expiry_date']
 
-    @swagger_auto_schema(
-        operation_description="Mark this option as interesting for training or tagging purposes.",
-        responses={200: openapi.Response("Flag set")}
-    )
     @action(detail=True, methods=["post"])
     def mark_interesting(self, request, pk=None):
-        """
-        Mark the given option as interesting (future flag logic TBD).
-        """
         option = self.get_object()
         return Response({"message": f"{option.symbol} marked as interesting."})
 
@@ -126,7 +111,7 @@ class OptionDataViewSet(viewsets.ModelViewSet):
             return Response({"error": "Missing symbol"}, status=400)
 
         lambda_client = boto3.client("lambda", region_name="us-east-1")
-        payload = {"symbol": symbol, "type": "option"}  # type 구분
+        payload = {"symbol": symbol, "type": "option"}
 
         lambda_client.invoke(
             FunctionName="stock-crawler",
@@ -146,15 +131,8 @@ class PriceCandleViewSet(viewsets.ModelViewSet):
     ordering_fields = ['timestamp', 'close', 'volume']
     ordering = ['-timestamp']
 
-    @swagger_auto_schema(
-        operation_description="Return basic statistics for candle data.",
-        responses={200: openapi.Response("Candle stats summary")}
-    )
     @action(detail=False, methods=["get"])
     def stats(self, request):
-        """
-        Aggregate statistics over the current queryset.
-        """
         qs = self.get_queryset()
         count = qs.count()
         avg_close = qs.aggregate(avg=Avg("close"))['avg']
@@ -162,3 +140,14 @@ class PriceCandleViewSet(viewsets.ModelViewSet):
             "count": count,
             "average_close": round(avg_close, 2) if avg_close else None
         })
+
+
+class NewsImpactViewSet(viewsets.ModelViewSet):
+    queryset = NewsImpact.objects.all()
+    serializer_class = NewsImpactSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['news__symbol', 'sentiment']
+    ordering_fields = ['score', 'created_at']
+    ordering = ['-created_at']
+
