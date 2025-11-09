@@ -52,17 +52,17 @@ services:
       - "8083:8083"
 
   clickhouse:
-    image: clickhouse/clickhouse-server:23.3
+    image: clickhouse/clickhouse-server:25.10.1
+    environment:
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
     ports:
-      - "8123:8123"
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:8123:8123"
     volumes:
-      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: >
-      bash -c "clickhouse-server &
-              sleep 5 &&
-              clickhouse-client --queries-file=/docker-entrypoint-initdb.d/init.sql &&
-              tail -f /dev/null"
+#      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+#      - ./clickhouse/users.d:/etc/clickhouse-server/users.d
+#      - ./clickhouse/config.d:/etc/clickhouse-server/config.d
+      - clickhouse_data:/var/lib/clickhouse
     ulimits:
       nofile:
         soft: 262144
@@ -130,5 +130,3 @@ volumes:
 
 networks:
   opensearch-net:
-
-

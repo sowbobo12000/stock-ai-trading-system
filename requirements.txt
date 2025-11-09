@@ -7,3 +7,4 @@ clickhouse-connect
 beautifulsoup4
 lxml
 pyyaml
+django-clickhouse-backend
