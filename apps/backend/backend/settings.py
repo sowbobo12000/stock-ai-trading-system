@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'clickhouse_backend',
 
     # ClickHouse 데이터 앱
-    'src.clickhouse_data',
+    'apps.clickhouse_data',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'stock_analysis.urls'
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -71,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'stock_analysis.wsgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 # Database
